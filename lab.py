@@ -2,10 +2,9 @@ import os
 from time import sleep
 import requests
 from bs4 import BeautifulSoup
-from fake_headers import Headers
 
 
-def createFolders(name:str) -> None:
+def createFolders(name : str) -> None:
     try:
         if not os.path.exists("dataset"):
             os.makedirs(os.path.join("dataset", name))
@@ -15,43 +14,42 @@ def createFolders(name:str) -> None:
         print("Error creating folder!")
 
 
-def saveImg(url: str, filename: str) -> None:
+def saveImg(imgurl : str, filename : str) -> None:
     try:
-        html = requests.get(url, stream = True, timeout = 10)
+        html = requests.get(imgurl, timeout = 10)
         if html.ok:
             with open(filename, 'wb') as file:
                 file.write(html.content)
     except Exception:
-        print(f'Error saving image: {url}')  
+        print(f'Error saving image: {imgurl}')  
 
 
-def ImgParser(name : str, url: str) -> None:
+def ImgParser(name : str, url : str) -> None:
     createFolders(name)
     list_length = len(os.listdir(os.path.join("dataset", name))) + 2
-    for page in range(list_length // 30, 40):
-        headers = Headers(browser = "Chrome", os = "win", headers = True).generate()
-        html = requests.get(url + f"&p={page}", headers, timeout = 10)
+    for page in range(list_length // 30, 34):
+        html = requests.get(url + f"&p={page}", timeout = 10)
         soup = BeautifulSoup(html.content, "lxml")
-        images = soup.findAll("img", class_ = "serp-item__thumb justifier__thumb") #возвращает html каждого фото
+        images = soup.findAll("img", class_ = "serp-item__thumb justifier__thumb")
         if len(images) == 0:
             print(soup.text)
             break
         for i in range(list_length % 30, len(images)):
             try:
-                url_with_tag = images[i].get("src")
+                url_with_tag = images[i].get("src") 
                 filename = make_filename(list_length, name)
                 saveImg("http:" + url_with_tag, filename)
                 print(f'Image №: {list_length}')
                 sleep(30)
                 list_length += 1
-                if list_length == 1000:
+                if list_length > 1000:
                     break
             except Exception:
                 print(f'Error! Image: {list_length}')
                 continue
 
 
-def make_filename(i: int, name: str) -> str:
+def make_filename(i : int, name : str) -> str:
     filename = f"{i:04d}.jpg"
     return os.path.join("dataset", name, filename)
 
