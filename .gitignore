@@ -1,8 +1,10 @@
 /dataset
-/annotation.csv
+/annotation1.csv
+/annotation2.csv
 /copy.csv
 /new_directory
-/copy_dataset.py
+/copy_dataset
+/new_dataset
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

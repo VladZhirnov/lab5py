@@ -2,7 +2,7 @@ import os
 import csv
 
 def create_annotation(dataset_path) -> None:
-    output_file = 'annotation.csv'
+    output_file = 'annotation1.csv'
     # Открываем файл для записи аннотации
     with open(output_file, 'w', newline='') as csvfile:
         # Создаем объект для записи CSV
