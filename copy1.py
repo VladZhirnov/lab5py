@@ -2,7 +2,17 @@ import os
 import shutil
 import csv
 
-def copy_dataset(original, new_directory) -> None:
+def copy_dataset(original : str, new_directory : str) -> None:
+    """
+    Copies the dataset folder to another directory and creates an annotation for it.
+
+    Parameters:
+    - original (str): Path to root directory.
+    - new_directory (str): Path to new directory.
+    
+    Returns:
+    None
+    """
     output_file = 'copy.csv'
     with open(output_file, 'w', newline='') as csvfile:
         # Создаем объект для записи CSV

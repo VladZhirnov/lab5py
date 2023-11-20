@@ -1,7 +1,16 @@
 import os
 import csv
 
-def create_annotation(dataset_path) -> None:
+def create_annotation(dataset_path : str) -> None:
+    """
+    Creates a CSV annotation for a dataset.
+
+    Parameters:
+    - dataset_path (str): Path to root directory.
+
+    Returns:
+    None
+    """
     output_file = 'annotation1.csv'
     # Открываем файл для записи аннотации
     with open(output_file, 'w', newline='') as csvfile:

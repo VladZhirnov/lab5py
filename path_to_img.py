@@ -1,7 +1,15 @@
 import os
-import random
 
-def get_next_instance(class_label):
+def get_next_instance(class_label : str) -> str:
+    """
+    Returns the path of each file.
+
+    Parameters:
+    - class_label (str): Names of the folder with pictures.
+
+    Returns:
+    str
+    """
     dataset_path = 'dataset'
     class_path = os.path.join(dataset_path, class_label)
     # Получаем список файлов в папке класса
