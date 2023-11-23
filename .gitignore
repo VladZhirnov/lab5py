@@ -2,9 +2,7 @@
 /new_directory
 /copy_dataset
 /new_dataset
-/annotation1.csv
 /annotation2.csv
-/copy.csv
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

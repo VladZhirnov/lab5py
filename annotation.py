@@ -25,5 +25,5 @@ def create_annotation(dataset_path : str) -> None:
                 csv_writer.writerow([absolute_path, relative_path, class_img])
 
 if __name__ == "__main__":
-    directory = 'dataset/leopard'
+    directory = 'dataset'
     create_annotation(directory)
