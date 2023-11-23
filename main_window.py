@@ -1,6 +1,7 @@
 from PyQt5 import QtWidgets
 from annotation import create_annotation
 from copy1 import copy_dataset  
+from copy_dataset import copy_dataset_with_random_numbers
 import os
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -11,12 +12,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.folder_path_button = QtWidgets.QPushButton('Выбрать папку', self)
         self.create_annotation_button = QtWidgets.QPushButton('Создать аннотацию', self)
         self.copy_dataset_button = QtWidgets.QPushButton('Создать датасет c файлами типа class_0000.jpg', self)
+        self.copy_dataset_with_random_numbers_button = QtWidgets.QPushButton('Создать датасет со случ. названиями файлов', self)
 
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.folder_path_label)
         layout.addWidget(self.folder_path_button)
         layout.addWidget(self.create_annotation_button)
         layout.addWidget(self.copy_dataset_button)
+        layout.addWidget(self.copy_dataset_with_random_numbers_button)
 
         central_widget = QtWidgets.QWidget()
         central_widget.setLayout(layout)
@@ -25,6 +28,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.folder_path_button.clicked.connect(self.get_folder_path)
         self.create_annotation_button.clicked.connect(self.create_annotation)
         self.copy_dataset_button.clicked.connect(self.copy_dataset)
+        self.copy_dataset_with_random_numbers_button.clicked.connect(self.copy_dataset_with_random_numbers)
 
         self.selected_folder_path = None
 
@@ -46,6 +50,13 @@ class MainWindow(QtWidgets.QMainWindow):
         relative_path2 = os.path.relpath(new_directory)
         copy_dataset(relative_path1, relative_path2)
         print(f"Датасет скопирован в новую папку: {relative_path2}")
+    
+    def copy_dataset_with_random_numbers(self):
+        if not self.selected_folder_path:
+            return QtWidgets.QMessageBox.warning(self, 'Ошибка', 'Выберите папку с исходным датасетом.')
+        relative_path = os.path.relpath(self.selected_folder_path)
+        copy_dataset_with_random_numbers(relative_path)
+        print(f"Датасет скопирован с случайными номерами в папку: {relative_path}")
 
 if __name__ == "__main__":
     import sys
