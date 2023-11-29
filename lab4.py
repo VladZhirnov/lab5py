@@ -4,8 +4,11 @@ from PIL import Image, UnidentifiedImageError
 import cv2
 import matplotlib.pyplot as plt
 
-df = pd.DataFrame(columns=["class_name", "Path_to_image"])
+if __name__ == "__main__":
+    df = pd.DataFrame(columns=["class_name", "Path_to_image"])
+
 def create_DataFrame():
+    """Create DataFrame"""
     annotation_file = "annotation1.csv"
 
     with open(annotation_file, "r", encoding="utf-8") as file:
@@ -20,6 +23,7 @@ def create_DataFrame():
 create_DataFrame()
 
 def find_image_size():
+    """Adds three columns of image characteristics to the DataFrame and fills them"""
     df['height'] = 0
     df['width'] = 0
     df['channels'] = 0
@@ -46,12 +50,14 @@ find_image_size()
 
 
 def check_balance(class_label_stats):
+    """Checks if the set is balanced"""
     if (class_label_stats.min() / class_label_stats.max() > 0.8):
         return True
     else:
         return False
     
 def statistical_info():
+    """Сalculate statistical information"""
     # Выводим статистическую информацию о размерах изображений
     image_size_stats = df[['height', 'width', 'channels']].describe()
 
@@ -71,10 +77,12 @@ statistical_info()
 
 
 def filter_dataframe_by_class(df, target_class):
+    """Filters a DataFrame by class"""
     filtered_df = df[df['mark'] == target_class].copy()
     return filtered_df
 
 def filter_DataFrame(target_class):
+    """Calls the Filter DataFrame by class function and outputs it"""
     filtered_df = filter_dataframe_by_class(df, target_class)
 
     print("\nОтфильтрованный DataFrame для метки класса", target_class, ":")
@@ -84,10 +92,12 @@ filter_DataFrame(0)
 
 
 def filter_dataframe_by_size_and_class(df, target_class, max_width, max_height):
+    """Filters DataFrame by class and size"""
     filtered_df = df[(df['mark'] == target_class) & (df['width'] <= max_width) & (df['height'] <= max_height)].copy()
     return filtered_df
 
 def filter_DataFrame_with_parameters(target_class, max_width, max_height):
+    """Calls the Filter DataFrame by class and size function and outputs it"""
     filtered_df = filter_dataframe_by_size_and_class(df, target_class, max_width, max_height)
 
     print("\nОтфильтрованный DataFrame для метки класса", target_class, "и размеров (width <= {}, height <= {}):".format(max_width, max_height))
@@ -97,6 +107,7 @@ filter_DataFrame_with_parameters(1, 400, 300)
 
 
 def group_and_find_pixel_values():
+    """Groups a DataFrame by class, creates a column with the number of pixels, and finds the minimum, maximum, and average pixel values"""
     df['pixel_count'] = df['width'] * df['height']
 
     # Группируем DataFrame по метке класса
@@ -119,6 +130,7 @@ group_and_find_pixel_values()
 
 
 def generate_histogram(df, target_class):
+    """Calculates histograms for each image channel"""
     # Фильтруем DataFrame для выбора случайного изображения заданного класса
     filtered_df = df[df['mark'] == target_class]
     random_image_row = filtered_df.sample(n=1).iloc[0]
@@ -142,6 +154,7 @@ def generate_histogram(df, target_class):
 
 
 def create_histogram_graph(target_class):
+    """Plot each histogram"""
     hist_b, hist_g, hist_r = generate_histogram(df, target_class)
 
     fig, axs = plt.subplots(3, 1, figsize=(6, 8))
