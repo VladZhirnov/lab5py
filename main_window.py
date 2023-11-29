@@ -22,7 +22,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         layout = QVBoxLayout()
         self.label = QLabel(self)
-        self.label.setGeometry(0, 0, 100, 100)
         layout.addWidget(self.label)
         layout.addWidget(self.button1())
         layout.addWidget(self.button2())
@@ -73,6 +72,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def next_tiger(self) -> None:
         """Iterator for tiger"""
+        if not self.selected_folder_path:
+            return QtWidgets.QMessageBox.warning(self, 'Ошибка', 'Выберите папку с исходным датасетом.')
         self.class_label = "tiger"
         instances = InstanceIterator(self.class_label, self.selected_folder_path)
         image_path = instances.__next__()
@@ -81,6 +82,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def next_leopard(self) -> None:
         """Iterator for leopard"""
+        if not self.selected_folder_path:
+            return QtWidgets.QMessageBox.warning(self, 'Ошибка', 'Выберите папку с исходным датасетом.')
         self.class_label = "leopard"
         instances = InstanceIterator(self.class_label, self.selected_folder_path)
         image_path = instances.__next__()

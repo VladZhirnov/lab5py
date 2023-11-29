@@ -20,7 +20,7 @@ def create_DataFrame():
 
     df.loc[df["class_name"] == "tiger", "mark"] = 0
     df.loc[df["class_name"] == "leopard", "mark"] = 1
-create_DataFrame()
+
 
 def find_image_size():
     """Adds three columns of image characteristics to the DataFrame and fills them"""
@@ -45,8 +45,6 @@ def find_image_size():
             continue
 
     print(df)
-
-find_image_size()
 
 
 def check_balance(class_label_stats):
@@ -73,8 +71,6 @@ def statistical_info():
     print(class_label_stats)
     print("\nНабор данных является сбалансированным:", is_balanced)
 
-statistical_info()
-
 
 def filter_dataframe_by_class(df, target_class):
     """Filters a DataFrame by class"""
@@ -88,8 +84,6 @@ def filter_DataFrame(target_class):
     print("\nОтфильтрованный DataFrame для метки класса", target_class, ":")
     print(filtered_df)
 
-filter_DataFrame(0)
-
 
 def filter_dataframe_by_size_and_class(df, target_class, max_width, max_height):
     """Filters DataFrame by class and size"""
@@ -102,8 +96,6 @@ def filter_DataFrame_with_parameters(target_class, max_width, max_height):
 
     print("\nОтфильтрованный DataFrame для метки класса", target_class, "и размеров (width <= {}, height <= {}):".format(max_width, max_height))
     print(filtered_df)
-
-filter_DataFrame_with_parameters(1, 400, 300)
 
 
 def group_and_find_pixel_values():
@@ -125,8 +117,6 @@ def group_and_find_pixel_values():
 
     print(df)
     print(result_df)
-
-group_and_find_pixel_values()
 
 
 def generate_histogram(df, target_class):
@@ -177,4 +167,12 @@ def create_histogram_graph(target_class):
     plt.tight_layout()
     plt.show()
 
-create_histogram_graph(1)
+
+if __name__ == "__main__":
+    create_DataFrame()
+    find_image_size()
+    statistical_info()
+    filter_DataFrame(0)
+    filter_DataFrame_with_parameters(1, 400, 300)
+    group_and_find_pixel_values()
+    create_histogram_graph(1)
