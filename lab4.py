@@ -51,7 +51,7 @@ find_image_size()
 
 def check_balance(class_label_stats):
     """Checks if the set is balanced"""
-    if (class_label_stats.min() / class_label_stats.max() > 0.8):
+    if (class_label_stats.min() == class_label_stats.max()):
         return True
     else:
         return False
