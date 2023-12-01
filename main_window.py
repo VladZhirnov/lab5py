@@ -1,5 +1,5 @@
 from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import QVBoxLayout, QLabel, QPushButton, QApplication, QFileDialog
+from PyQt6.QtWidgets import QVBoxLayout, QLabel, QApplication, QFileDialog
 from PyQt6.QtGui import QPixmap
 from annotation import create_annotation
 from copy1 import copy_dataset  
@@ -12,24 +12,25 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
 
         self.selected_folder_path = None
-        self.current_image = None 
         self.resize(300, 100)
         self.folder_path_label = QtWidgets.QLabel('Выберите папку с исходным датасетом:')
         self.folder_path_button = QtWidgets.QPushButton('Выбрать папку', self)
         self.create_annotation_button = QtWidgets.QPushButton('Создать аннотацию', self)
         self.copy_dataset_button = QtWidgets.QPushButton('Создать датасет c файлами типа class_0000.jpg', self)
         self.copy_dataset_with_random_numbers_button = QtWidgets.QPushButton('Создать датасет со случ. названиями файлов', self)
+        self.tiger_button = QtWidgets.QPushButton("Следующая картинка tiger")
+        self.leopard_button = QtWidgets.QPushButton("Следующая картинка leopard")
 
         layout = QVBoxLayout()
         self.label = QLabel(self)
         layout.addWidget(self.label)
-        layout.addWidget(self.button1())
-        layout.addWidget(self.button2())
         layout.addWidget(self.folder_path_label)
         layout.addWidget(self.folder_path_button)
         layout.addWidget(self.create_annotation_button)
         layout.addWidget(self.copy_dataset_button)
         layout.addWidget(self.copy_dataset_with_random_numbers_button)
+        layout.addWidget(self.tiger_button)
+        layout.addWidget(self.leopard_button)
 
         central_widget = QtWidgets.QWidget()
         central_widget.setLayout(layout)
@@ -39,6 +40,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_annotation_button.clicked.connect(self.create_annotation)
         self.copy_dataset_button.clicked.connect(self.copy_dataset)
         self.copy_dataset_with_random_numbers_button.clicked.connect(self.copy_dataset_with_random_numbers)
+        self.tiger_button.clicked.connect(self.next_tiger)
+        self.leopard_button.clicked.connect(self.next_leopard)
 
     def get_folder_path(self) -> None:
         """Getting the folder path"""
@@ -89,18 +92,6 @@ class MainWindow(QtWidgets.QMainWindow):
         image_path = instances.__next__()
         self.current_image = QPixmap(image_path)
         self.label.setPixmap(self.current_image.scaled(400, 400))
-
-    def button1(self) -> QPushButton:
-        """create button1"""
-        button = QPushButton("Следующая картинка tiger")
-        button.clicked.connect(self.next_tiger)
-        return button
-
-    def button2(self) -> QPushButton:
-        """create button2"""
-        button = QPushButton("Следующая картинка leopard")
-        button.clicked.connect(self.next_leopard)
-        return button
     
 if __name__ == "__main__":
     app = QApplication([])
