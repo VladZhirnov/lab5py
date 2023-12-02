@@ -93,8 +93,8 @@ class CNN(nn.Module):
         return torch.nn.Sigmoid()(output)
 
 # Эксперименты с learning rate и batch size
-learning_rates = [0.001, 0.01, 0.1]  
-batch_sizes = [16, 32, 64]  
+learning_rates = [0.001, 0.01, 0.1]
+batch_sizes = [16, 32, 64]
 
 for lr in learning_rates:
     for bs in batch_sizes:
@@ -105,12 +105,14 @@ for lr in learning_rates:
         criterion = nn.BCELoss()
         optimizer = optim.Adam(model.parameters(), lr=lr)
 
-        # Перенос модели на устройство (GPU, если доступен)
+        # Перенос модели на устройство 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
 
         # Цикл обучения
-        num_epochs = 5  
+        num_epochs = 5
+        train_losses = []  
+        val_losses = []    
         for epoch in range(num_epochs):
             model.train()
             running_loss = 0.0
@@ -123,16 +125,29 @@ for lr in learning_rates:
                 optimizer.step()
                 running_loss += loss.item()
 
-            print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {running_loss / len(train_dataloader):.4f}")
+            train_losses.append(running_loss / len(train_dataloader))
 
-        # Валидация
-        model.eval()
-        val_loss = 0.0
-        with torch.no_grad():
-            for inputs, labels in val_dataloader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                outputs = model(inputs)
-                loss = criterion(outputs, labels.float().view(-1, 1))
-                val_loss += loss.item()
+            print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_losses[-1]:.4f}")
 
-        print(f"Validation Loss: {val_loss / len(val_dataloader):.4f}")
+            # Валидация
+            model.eval()
+            val_loss = 0.0
+            with torch.no_grad():
+                for inputs, labels in val_dataloader:
+                    inputs, labels = inputs.to(device), labels.to(device)
+                    outputs = model(inputs)
+                    loss = criterion(outputs, labels.float().view(-1, 1))
+                    val_loss += loss.item()
+
+            val_losses.append(val_loss / len(val_dataloader))
+            print(f"Validation Loss: {val_losses[-1]:.4f}")
+
+        plt.figure(figsize=(10, 5))
+        plt.subplot(1, 2, 1)
+        plt.plot(range(1, num_epochs + 1), train_losses, label='Train')
+        plt.plot(range(1, num_epochs + 1), val_losses, label='Validation')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.title('Training and Validation Loss')
+        plt.legend()
+        plt.show()
