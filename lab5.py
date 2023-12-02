@@ -49,7 +49,7 @@ def create_data_loaders() -> Tuple[DataLoader, DataLoader, DataLoader, torchvisi
     test_size = total_size - train_size - val_size
 
     train_data, val_data, test_data = random_split(custom_dataset, [train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
-
+    
     train_dataloader = DataLoader(train_data, batch_size=32, shuffle=True)
     val_dataloader = DataLoader(val_data, batch_size=32, shuffle=False)
     test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
@@ -237,4 +237,4 @@ if __name__ == "__main__":
     predicted_label, image_tensor = predict_image(loaded_model, image_path, custom_transforms, device)
 
     original_image = Image.open(image_path)
-    plot_predicted_image(image_tensor, predicted_label, custom_transforms)
+    plot_predicted_image(image_tensor, predicted_label)
