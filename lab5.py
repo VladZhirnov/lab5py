@@ -11,7 +11,6 @@ import torch.optim as optim
 import numpy as np
 from PIL import Image
 
-
 class CustomImageDataset(Dataset):
     def __init__(self, path_to_annotation_file: str, transform: Any=None, target_transform: Any=None) -> None:
         self.path_to_annotation_file = path_to_annotation_file
@@ -34,28 +33,27 @@ class CustomImageDataset(Dataset):
 
         return image, label
 
-# Пайплайн предобработки данных
-custom_transforms = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),
-                                                    torchvision.transforms.Resize((224, 224)),
-                                                    torchvision.transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+def create_data_loaders():
+    custom_transforms = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),
+                                                        torchvision.transforms.Resize((224, 224)),
+                                                        torchvision.transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
-path_to_dataset = "dataset"
+    path_to_dataset = "dataset"
 
-custom_dataset = CustomImageDataset(os.path.join(path_to_dataset, "annotation3.csv"), custom_transforms)
+    custom_dataset = CustomImageDataset(os.path.join(path_to_dataset, "annotation3.csv"), custom_transforms)
 
-# Разделение данных
-total_size = len(custom_dataset)
-train_size = int(0.8 * total_size)
-val_size = int(0.1 * total_size)
-test_size = total_size - train_size - val_size
+    total_size = len(custom_dataset)
+    train_size = int(0.8 * total_size)
+    val_size = int(0.1 * total_size)
+    test_size = total_size - train_size - val_size
 
-train_data, val_data, test_data = random_split(custom_dataset, [train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
+    train_data, val_data, test_data = random_split(custom_dataset, [train_size, val_size, test_size], generator=torch.Generator().manual_seed(42))
 
-# Загрузчики данных
-batch_size = 32  
-train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-val_dataloader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
-test_dataloader = DataLoader(test_data, batch_size=batch_size, shuffle=False)
+    train_dataloader = DataLoader(train_data, batch_size=32, shuffle=True)
+    val_dataloader = DataLoader(val_data, batch_size=32, shuffle=False)
+    test_dataloader = DataLoader(test_data, batch_size=32, shuffle=False)
+
+    return train_dataloader, val_dataloader, test_dataloader, custom_transforms
 
 class CNN(nn.Module):
     def __init__(self) -> None:
@@ -93,110 +91,109 @@ class CNN(nn.Module):
         output = self.fc2(output)
         return torch.nn.Sigmoid()(output)
 
-# Эксперименты с learning rate и batch size
-learning_rates = [0.001, 0.01, 0.1]
-batch_sizes = [16, 32, 64]
+def train_model(model, train_dataloader, val_dataloader, learning_rate=0.001, batch_size=32, num_epochs=5, device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
+    # Эксперименты с learning rate и batch size
+    learning_rates = [0.001, 0.01, 0.1]
+    batch_sizes = [16, 32, 64]
 
-for lr in learning_rates:
-    for bs in batch_sizes:
-        print(f"\nTraining with learning rate: {lr}, batch size: {bs}")
+    for lr in learning_rates:
+        for bs in batch_sizes:
+            print(f"\nTraining with learning rate: {lr}, batch size: {bs}")
 
-        # Инициализация модели, функции потерь и оптимизатора
-        model = CNN()
-        criterion = nn.BCELoss()
-        optimizer = optim.Adam(model.parameters(), lr=lr)
+            # Инициализация модели, функции потерь и оптимизатора
+            model = CNN()
+            criterion = nn.BCELoss()
+            optimizer = optim.Adam(model.parameters(), lr=lr)
 
-        # Перенос модели на устройство 
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model.to(device)
+            # Перенос модели на устройство 
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model.to(device)
 
-        # Цикл обучения
-        num_epochs = 5
-        train_losses = []  
-        val_losses = []    
-        for epoch in range(num_epochs):
-            model.train()
-            running_loss = 0.0
-            for inputs, labels in train_dataloader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                optimizer.zero_grad()
-                outputs = model(inputs)
-                loss = criterion(outputs, labels.float().view(-1, 1))
-                loss.backward()
-                optimizer.step()
-                running_loss += loss.item()
-
-            train_losses.append(running_loss / len(train_dataloader))
-
-            print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_losses[-1]:.4f}")
-
-            # Валидация
-            model.eval()
-            val_loss = 0.0
-            with torch.no_grad():
-                for inputs, labels in val_dataloader:
+            # Цикл обучения
+            num_epochs = 5
+            train_losses = []  
+            val_losses = []    
+            for epoch in range(num_epochs):
+                model.train()
+                running_loss = 0.0
+                for inputs, labels in train_dataloader:
                     inputs, labels = inputs.to(device), labels.to(device)
+                    optimizer.zero_grad()
                     outputs = model(inputs)
                     loss = criterion(outputs, labels.float().view(-1, 1))
-                    val_loss += loss.item()
+                    loss.backward()
+                    optimizer.step()
+                    running_loss += loss.item()
 
-            val_losses.append(val_loss / len(val_dataloader))
-            print(f"Validation Loss: {val_losses[-1]:.4f}")
+                train_losses.append(running_loss / len(train_dataloader))
 
-        plt.figure(figsize=(10, 5))
-        plt.subplot(1, 2, 1)
-        plt.plot(range(1, num_epochs + 1), train_losses, label='Train')
-        plt.plot(range(1, num_epochs + 1), val_losses, label='Validation')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.title('Training and Validation Loss')
-        plt.legend()
-        plt.show()
+                print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_losses[-1]:.4f}")
 
+                # Валидация
+                model.eval()
+                val_loss = 0.0
+                with torch.no_grad():
+                    for inputs, labels in val_dataloader:
+                        inputs, labels = inputs.to(device), labels.to(device)
+                        outputs = model(inputs)
+                        loss = criterion(outputs, labels.float().view(-1, 1))
+                        val_loss += loss.item()
 
-# Оценка модели на тестовой выборке
-model.eval()
+                val_losses.append(val_loss / len(val_dataloader))
+                print(f"Validation Loss: {val_losses[-1]:.4f}")
 
-test_loss = 0
-test_accuracy = 0
+            plt.figure(figsize=(10, 5))
+            plt.subplot(1, 2, 1)
+            plt.plot(range(1, num_epochs + 1), train_losses, label='Train')
+            plt.plot(range(1, num_epochs + 1), val_losses, label='Validation')
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.title('Training and Validation Loss')
+            plt.legend()
+            plt.show()
 
-with torch.no_grad():
-    for data, label in test_dataloader:
-        data = data.to(device)
-        label = label.to(device)
+def evaluate_model(model, test_dataloader, device):
+    model.eval()
 
-        output = model(data)
-        loss = criterion(output, label.float().unsqueeze(dim=1))
+    criterion = nn.BCELoss()
+    test_loss = 0
+    test_accuracy = 0
 
-        predictions = (output >= 0.5).int()
-        correct_predictions = (predictions == label.int().view(-1, 1)).sum().item()
+    with torch.no_grad():
+        for data, label in test_dataloader:
+            data = data.to(device)
+            label = label.to(device)
 
-        test_accuracy += correct_predictions / len(test_dataloader.dataset)
-        test_loss += loss.item()
+            output = model(data)
+            loss = criterion(output, label.float().unsqueeze(dim=1))
 
-test_accuracy /= len(test_dataloader)
-test_loss /= len(test_dataloader)
+            predictions = (output >= 0.5).int()
+            correct_predictions = (predictions == label.int().view(-1, 1)).sum().item()
 
-print(f'Test Loss: {test_loss:.4f}')
-print(f'Test Accuracy: {test_accuracy:.4f}')
+            test_accuracy += correct_predictions / len(test_dataloader.dataset)
+            test_loss += loss.item()
 
-# Сохранение обученной модели
-torch.save(model.state_dict(), os.path.join("dataset", "weight.pt"))
-print("Model saved to dataset")
+    test_accuracy /= len(test_dataloader)
+    test_loss /= len(test_dataloader)
 
-# Загрузка сохраненной модели
-loaded_model = CNN()
-loaded_model.load_state_dict(torch.load(os.path.join("dataset", "weight.pt")))
-loaded_model.to(device)
+    print(f'Test Loss: {test_loss:.4f}')
+    print(f'Test Accuracy: {test_accuracy:.4f}')
 
+    return test_accuracy, test_loss
 
-demo_model = CNN()
+def save_and_load_model(model, device):
+    # Сохранение обученной модели
+    torch.save(model.state_dict(), os.path.join("dataset", "weight.pt"))
+    print("Model saved to dataset")
 
-# Загрузка весов
-demo_model.load_state_dict(torch.load(os.path.join(path_to_dataset, "weight.pt")))
-demo_model.to(device)
+    # Загрузка сохраненной модели
+    loaded_model = CNN()
+    loaded_model.load_state_dict(torch.load(os.path.join("dataset", "weight.pt")))
+    loaded_model.to(device)
 
-def predict_image(model, image_path, transform):
+    return loaded_model
+
+def predict_image(model, image_path, transform, device):
     image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
     image_tensor = transform(image).unsqueeze(0).to(device)
     
@@ -205,20 +202,33 @@ def predict_image(model, image_path, transform):
         output = model(image_tensor)
         predicted_label = 1 if output.item() >= 0.5 else 0
     
-    return predicted_label
+    return predicted_label, image_tensor
 
-image_path = "photo1.jpg"
-predicted_label = predict_image(demo_model, image_path, custom_transforms)
+def plot_predicted_image(image_tensor, predicted_label, custom_transforms):
+    transformed_image_for_plot = image_tensor.cpu().numpy().squeeze().transpose((1, 2, 0))
+    mean = np.array([0.485, 0.456, 0.406])
+    std = np.array([0.229, 0.224, 0.225])
+    transformed_image_for_plot = std * transformed_image_for_plot + mean
+    transformed_image_for_plot = np.clip(transformed_image_for_plot, 0, 1)
 
-original_image = Image.open(image_path)
-transformed_image = custom_transforms(original_image)
+    plt.imshow(transformed_image_for_plot)
+    plt.title(f"Predicted Label: {predicted_label}")
+    plt.show()
 
-transformed_image_for_plot = transformed_image.numpy().transpose((1, 2, 0))
-mean = np.array([0.485, 0.456, 0.406])
-std = np.array([0.229, 0.224, 0.225])
-transformed_image_for_plot = std * transformed_image_for_plot + mean
-transformed_image_for_plot = np.clip(transformed_image_for_plot, 0, 1)
+if __name__ == "__main__":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-plt.imshow(transformed_image_for_plot)
-plt.title(f"Predicted Label: {predicted_label}")
-plt.show()
+    train_dataloader, val_dataloader, test_dataloader, custom_transforms = create_data_loaders()
+
+    model = CNN()
+    train_model(model, train_dataloader, val_dataloader, device=device)
+
+    test_accuracy, test_loss = evaluate_model(model, test_dataloader, device)
+
+    loaded_model = save_and_load_model(model, device)
+
+    image_path = "photo1.jpg"
+    predicted_label, image_tensor = predict_image(loaded_model, image_path, custom_transforms, device)
+
+    original_image = Image.open(image_path)
+    plot_predicted_image(image_tensor, predicted_label, custom_transforms)
