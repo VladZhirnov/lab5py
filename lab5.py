@@ -33,7 +33,8 @@ class CustomImageDataset(Dataset):
 
         return image, label
 
-def create_data_loaders():
+def create_data_loaders() -> Tuple[DataLoader, DataLoader, DataLoader, torchvision.transforms.Compose]:
+    """Create data loaders for training, validation, and testing"""
     custom_transforms = torchvision.transforms.Compose([torchvision.transforms.ToTensor(),
                                                         torchvision.transforms.Resize((224, 224)),
                                                         torchvision.transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
@@ -91,7 +92,8 @@ class CNN(nn.Module):
         output = self.fc2(output)
         return torch.nn.Sigmoid()(output)
 
-def train_model(model, train_dataloader, val_dataloader, learning_rate=0.001, batch_size=32, num_epochs=5, device=torch.device("cuda" if torch.cuda.is_available() else "cpu")):
+def train_model(model: CNN, train_dataloader: DataLoader, val_dataloader: DataLoader, num_epochs: int = 5, device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")) -> None:
+    """Train the CNN model"""
     # Эксперименты с learning rate и batch size
     learning_rates = [0.001, 0.01, 0.1]
     batch_sizes = [16, 32, 64]
@@ -152,7 +154,8 @@ def train_model(model, train_dataloader, val_dataloader, learning_rate=0.001, ba
             plt.legend()
             plt.show()
 
-def evaluate_model(model, test_dataloader, device):
+def evaluate_model(model: CNN, test_dataloader: DataLoader, device: torch.device) -> Tuple[float, float]:
+    """Evaluate the CNN model on the test set"""
     model.eval()
 
     criterion = nn.BCELoss()
@@ -181,7 +184,8 @@ def evaluate_model(model, test_dataloader, device):
 
     return test_accuracy, test_loss
 
-def save_and_load_model(model, device):
+def save_and_load_model(model: CNN, device: torch.device) -> CNN:
+    """Save and load the trained CNN model"""
     # Сохранение обученной модели
     torch.save(model.state_dict(), os.path.join("dataset", "weight.pt"))
     print("Model saved to dataset")
@@ -193,7 +197,8 @@ def save_and_load_model(model, device):
 
     return loaded_model
 
-def predict_image(model, image_path, transform, device):
+def predict_image(model: CNN, image_path: str, transform: torchvision.transforms.Compose, device: torch.device) -> Tuple[int, torch.Tensor]:
+    """Predict the label for an image using the CNN model"""
     image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
     image_tensor = transform(image).unsqueeze(0).to(device)
     
@@ -204,7 +209,8 @@ def predict_image(model, image_path, transform, device):
     
     return predicted_label, image_tensor
 
-def plot_predicted_image(image_tensor, predicted_label, custom_transforms):
+def plot_predicted_image(image_tensor: torch.Tensor, predicted_label: int) -> None:
+    """Plot the original and transformed image with the predicted label"""
     transformed_image_for_plot = image_tensor.cpu().numpy().squeeze().transpose((1, 2, 0))
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
