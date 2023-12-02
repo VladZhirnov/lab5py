@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import numpy as np
 import random
 
 class CustomImageDataset(Dataset):
@@ -151,3 +153,30 @@ for lr in learning_rates:
         plt.title('Training and Validation Loss')
         plt.legend()
         plt.show()
+
+
+# Оценка модели на тестовой выборке
+model.eval()
+
+test_loss = 0
+test_accuracy = 0
+
+with torch.no_grad():
+    for data, label in test_dataloader:
+        data = data.to(device)
+        label = label.to(device)
+
+        output = model(data)
+        loss = criterion(output, label.float().unsqueeze(dim=1))
+
+        predictions = (output >= 0.5).int()
+        correct_predictions = (predictions == label.int().view(-1, 1)).sum().item()
+
+        test_accuracy += correct_predictions / len(test_dataloader.dataset)
+        test_loss += loss.item()
+
+test_accuracy /= len(test_dataloader)
+test_loss /= len(test_dataloader)
+
+print(f'Test Loss: {test_loss:.4f}')
+print(f'Test Accuracy: {test_accuracy:.4f}')
