@@ -180,3 +180,12 @@ test_loss /= len(test_dataloader)
 
 print(f'Test Loss: {test_loss:.4f}')
 print(f'Test Accuracy: {test_accuracy:.4f}')
+
+# Сохранение обученной модели
+torch.save(model.state_dict(), os.path.join("dataset", "weight.pt"))
+print("Model saved to dataset")
+
+# Загрузка сохраненной модели
+loaded_model = CNN()
+loaded_model.load_state_dict(torch.load(os.path.join("dataset", "weight.pt")))
+loaded_model.to(device)
