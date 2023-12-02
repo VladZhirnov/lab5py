@@ -6,7 +6,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+/photo1.jpg
 # C extensions
 *.so
 

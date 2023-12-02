@@ -4,14 +4,13 @@ import cv2
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, random_split, DataLoader
-from torchvision import transforms
 import matplotlib.pyplot as plt
 import torchvision
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import numpy as np
-import random
+from PIL import Image
+
 
 class CustomImageDataset(Dataset):
     def __init__(self, path_to_annotation_file: str, transform: Any=None, target_transform: Any=None) -> None:
@@ -189,3 +188,37 @@ print("Model saved to dataset")
 loaded_model = CNN()
 loaded_model.load_state_dict(torch.load(os.path.join("dataset", "weight.pt")))
 loaded_model.to(device)
+
+
+demo_model = CNN()
+
+# Загрузка весов
+demo_model.load_state_dict(torch.load(os.path.join(path_to_dataset, "weight.pt")))
+demo_model.to(device)
+
+def predict_image(model, image_path, transform):
+    image = cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_BGR2RGB)
+    image_tensor = transform(image).unsqueeze(0).to(device)
+    
+    model.eval()
+    with torch.no_grad():
+        output = model(image_tensor)
+        predicted_label = 1 if output.item() >= 0.5 else 0
+    
+    return predicted_label
+
+image_path = "photo1.jpg"
+predicted_label = predict_image(demo_model, image_path, custom_transforms)
+
+original_image = Image.open(image_path)
+transformed_image = custom_transforms(original_image)
+
+transformed_image_for_plot = transformed_image.numpy().transpose((1, 2, 0))
+mean = np.array([0.485, 0.456, 0.406])
+std = np.array([0.229, 0.224, 0.225])
+transformed_image_for_plot = std * transformed_image_for_plot + mean
+transformed_image_for_plot = np.clip(transformed_image_for_plot, 0, 1)
+
+plt.imshow(transformed_image_for_plot)
+plt.title(f"Predicted Label: {predicted_label}")
+plt.show()
